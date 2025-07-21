@@ -1,0 +1,13 @@
+{
+  "name": "islamic-daily-companion",
+  "version": "1.0.0",
+  "description": "Islamic Desktop Website with daily Quranic verses and prayer times",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'No build step required for this static site.'",
+    "start": "echo 'Open index.html in your browser to view the site.'"
+  },
+  "keywords": ["islamic", "prayer-times", "quran", "daily-companion"],
+  "author": "",
+  "license": "MIT"
+}
