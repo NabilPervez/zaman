@@ -113,12 +113,54 @@
         const prayerTimesContainer = document.getElementById('prayerTimes');
 
         // --- Data Sources ---
-        const quranicVerses = [
-            { arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", english: "For indeed, with hardship [will be] ease.", reference: "Quran 94:5" },
-            { arabic: "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ", english: "And whoever relies upon Allah - then He is sufficient for him.", reference: "Quran 65:3" },
-            { arabic: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", english: "Unquestionably, by the remembrance of Allah hearts are assured.", reference: "Quran 13:28" },
-            { arabic: "وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ", english: "And seek help through patience and prayer.", reference: "Quran 2:45" },
-            { arabic: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا", english: "Allah does not burden a soul beyond that it can bear.", reference: "Quran 2:286" }
+        const quranicVerses = 
+        [
+        { arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", english: "For indeed, with hardship [will be] ease.", reference: "Quran 94:5" },
+        { arabic: "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ", english: "And whoever relies upon Allah - then He is sufficient for him.", reference: "Quran 65:3" },
+        { arabic: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", english: "Unquestionably, by the remembrance of Allah hearts are assured.", reference: "Quran 13:28" },
+        { arabic: "وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ", english: "And seek help through patience and prayer.", reference: "Quran 2:45" },
+        { arabic: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا", english: "Allah does not burden a soul beyond that it can bear.", reference: "Quran 2:286" },
+        { arabic: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ", english: "Indeed, Allah is with the patient.", reference: "Quran 2:153" },
+        { arabic: "فَاذْكُرُونِي أَذْكُرْكُمْ", english: "So remember Me; I will remember you.", reference: "Quran 2:152" },
+        { arabic: "وَمَا أَرْسَلْنَاكَ إِلَّا رَحْمَةً لِّلْعَالَمِينَ", english: "And We have not sent you, [O Muhammad], except as a mercy to the worlds.", reference: "Quran 21:107" },
+        { arabic: "يَا أَيُّهَا الَّذِينَ آمَنُوا اتَّقُوا اللَّهَ وَقُولُوا قَوْلًا سَدِيدًا", english: "O you who have believed, fear Allah and speak words of appropriate uprightness.", reference: "Quran 33:70" },
+        { arabic: "إِنَّ الْإِنسَانَ لَفِي خُسْرٍ إِلَّا الَّذِينَ آمَنُوا وَعَمِلُوا الصَّالِحَاتِ", english: "Indeed, mankind is in loss, except for those who have believed and done righteous deeds.", reference: "Quran 103:2-3" },
+        { arabic: "فَاصْبِرْ إِنَّ وَعْدَ اللَّهِ حَقٌّ", english: "So be patient; indeed, the promise of Allah is truth.", reference: "Quran 30:60" },
+        { arabic: "وَلَا تَيْأَسُوا مِن رَّوْحِ اللَّهِ", english: "And never give up hope of Allah's soothing comfort.", reference: "Quran 12:87" },
+        { arabic: "قُلْ هُوَ اللَّهُ أَحَدٌ", english: "Say, 'He is Allah, [who is] One.'", reference: "Quran 112:1" },
+        { arabic: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ", english: "Our Lord, give us in this world [that which is] good and in the Hereafter [that which is] good and protect us from the punishment of the Fire.", reference: "Quran 2:201" },
+        { arabic: "هُوَ اللَّهُ الْخَالِقُ الْبَارِئُ الْمُصَوِّرُ ۖ لَهُ الْأَسْمَاءُ الْحُسْنَىٰ", english: "He is Allah, the Creator, the Inventor, the Fashioner; to Him belong the best names.", reference: "Quran 59:24" },
+        { arabic: "إِنَّ اللَّهَ يُحِبُّ الْمُتَوَكِّلِينَ", english: "Indeed, Allah loves those who rely [upon Him].", reference: "Quran 3:159" },
+        { arabic: "وَمَا كَانَ اللَّهُ مُعَذِّبَهُمْ وَهُمْ يَسْتَغْفِرُونَ", english: "But Allah would not punish them while they sought forgiveness.", reference: "Quran 8:33" },
+        { arabic: "وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ", english: "And We have certainly made the Qur'an easy for remembrance, so is there any who will remember?", reference: "Quran 54:17" },
+        { arabic: "وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا", english: "And whoever fears Allah - He will make for him a way out.", reference: "Quran 65:2" },
+        { arabic: "لَا إِكْرَاهَ فِي الدِّينِ", english: "There shall be no compulsion in [acceptance of] the religion.", reference: "Quran 2:256" },
+        { arabic: "فَاعْلَمْ أَنَّهُ لَا إِلَٰهَ إِلَّا اللَّهُ", english: "So know, [O Muhammad], that there is no deity except Allah.", reference: "Quran 47:19" },
+        { arabic: "اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ", english: "Allah is the Light of the heavens and the earth.", reference: "Quran 24:35" },
+        { arabic: "وَقُل رَّبِّ زِدْنِي عِلْمًا", english: "And say, 'My Lord, increase me in knowledge.'", reference: "Quran 20:114" },
+        { arabic: "وَمَا النَّصْرُ إِلَّا مِنْ عِندِ اللَّهِ", english: "And victory is not but from Allah.", reference: "Quran 3:126" },
+        { arabic: "وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ", english: "And that there is not for man except that [good] for which he strives.", reference: "Quran 53:39" },
+        { arabic: "إِنَّ اللَّهَ غَفُورٌ رَّحِيمٌ", english: "Indeed, Allah is Forgiving and Merciful.", reference: "Quran 2:173" },
+        { arabic: "ادْعُونِي أَسْتَجِبْ لَكُمْ", english: "Call upon Me; I will respond to you.", reference: "Quran 40:60" },
+        { arabic: "إِنَّ مَعَ الْعُسْرِ يُسْرًا", english: "Indeed, with hardship [will be] ease.", reference: "Quran 94:6" },
+        { arabic: "وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ", english: "And my success is not but through Allah.", reference: "Quran 11:88" },
+        { arabic: "إِنَّ اللَّهَ لَا يُخْلِفُ الْمِيعَادَ", english: "Indeed, Allah does not fail in His promise.", reference: "Quran 3:9" },
+        { arabic: "وَاصْبِرْ وَمَا صَبْرُكَ إِلَّا بِاللَّهِ", english: "And be patient, [O Muhammad], and your patience is not but through Allah.", reference: "Quran 16:127" },
+        { arabic: "إِنَّ اللَّهَ بِالنَّاسِ لَرَءُوفٌ رَّحِيمٌ", english: "Indeed, Allah is, to the people, Kind and Merciful.", reference: "Quran 22:65" },
+        { arabic: "قُلْ إِنَّ صَلَاتِي وَنُسُكِي وَمَحْيَايَ وَمَمَاتِي لِلَّهِ رَبِّ الْعَالَمِينَ", english: "Say, 'Indeed, my prayer, my rites of sacrifice, my living and my dying are for Allah, Lord of the worlds.'", reference: "Quran 6:162" },
+        { arabic: "هُوَ الَّذِي جَعَلَ الشَّمْسَ ضِيَاءً وَالْقَمَرَ نُورًا", english: "He it is who made the sun a shining light and the moon a [reflected] light.", reference: "Quran 10:5" },
+        { arabic: "وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا", english: "And of His signs is that He created for you from yourselves mates that you may find tranquility in them.", reference: "Quran 30:21" },
+        { arabic: "إِنَّ اللَّهَ سَمِيعٌ عَلِيمٌ", english: "Indeed, Allah is Hearing and Knowing.", reference: "Quran 2:227" },
+        { arabic: "فَاسْتَقِيمُوا إِلَيْهِ وَاسْتَغْفِرُوهُ", english: "So remain on a direct course toward Him and seek His forgiveness.", reference: "Quran 41:6" },
+        { arabic: "لَقَدْ كَانَ لَكُمْ فِي رَسُولِ اللَّهِ أُسْوَةٌ حَسَنَةٌ", english: "There has certainly been for you in the Messenger of Allah an excellent pattern.", reference: "Quran 33:21" },
+        { arabic: "وَلَا تَمْشِ فِي الْأَرْضِ مَرَحًا", english: "And do not walk upon the earth exultantly.", reference: "Quran 17:37" },
+        { arabic: "وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ", english: "And cooperate in righteousness and piety.", reference: "Quran 5:2" },
+        { arabic: "وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ", english: "And He is over all things competent.", reference: "Quran 5:120" },
+        { arabic: "وَمَن يُؤْتَ الْحِكْمَةَ فَقَدْ أُوتِيَ خَيْرًا كَثِيرًا", english: "And whoever is granted wisdom has certainly been granted much good.", reference: "Quran 2:269" },
+        { arabic: "إِنَّ اللَّهَ لَا يُضِيعُ أَجْرَ الْمُحْسِنِينَ", english: "Indeed, Allah does not allow to be lost the reward of those who do good.", reference: "Quran 9:120" },
+        { arabic: "يُرِيدُ اللَّهُ بِكُمُ الْيُسْرَ وَلَا يُرِيدُ بِكُمُ الْعُسْرَ", english: "Allah intends for you ease and does not intend for you hardship.", reference: "Quran 2:185" },
+        { arabic: "وَاذْكُر رَّبَّكَ إِذَا نَسِيتَ", english: "And remember your Lord when you forget.", reference: "Quran 18:24" },
+        { arabic: "وَلَا تَيْأَسُوا مِن رَّوْحِ اللَّهِ", english: "And never give up hope of Allah's soothing comfort.", reference: "Quran 12:87" }
         ];
 
         const backgroundImages = [
