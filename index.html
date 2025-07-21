@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Islamic Daily Companion</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter and Noto Naskh Arabic for elegant typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom styles for the application */
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-image 1s ease-in-out;
+        }
+
+        /* Style for the Arabic text, using a dedicated Arabic font */
+        .arabic-quote {
+            font-family: 'Noto Naskh Arabic', serif;
+            direction: rtl; /* Right-to-left text direction for Arabic */
+        }
+        
+        /* Fade-in animation for loaded content */
+        .fade-in {
+            animation: fadeInAnimation 1s ease-in-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInAnimation {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Styling for the glassmorphism effect on containers */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 bg-cover bg-center bg-no-repeat text-white relative flex flex-col items-center justify-center min-h-screen p-4 md:p-6">
+
+    <!-- Background Image Overlay -->
+    <div class="absolute inset-0 bg-black opacity-50 z-0"></div>
+
+    <!-- Location Input Modal -->
+    <div id="locationModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-white text-gray-800 rounded-lg p-8 max-w-sm text-center shadow-2xl">
+            <h2 class="text-2xl font-bold mb-4">Set Your Location</h2>
+            <p class="mb-6">To provide accurate prayer times, please enter your coordinates. Your location data is saved only in your browser.</p>
+            <div class="mb-4">
+                <label for="latitudeInput" class="block text-left text-sm font-medium text-gray-700">Latitude</label>
+                <input type="text" id="latitudeInput" value="32.7767" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div class="mb-6">
+                <label for="longitudeInput" class="block text-left text-sm font-medium text-gray-700">Longitude</label>
+                <input type="text" id="longitudeInput" value="-96.7970" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <button id="saveLocationBtn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300 w-full">Save Location</button>
+            <p id="locationError" class="text-red-500 text-sm mt-4"></p>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main id="mainContent" class="relative z-10 flex flex-col items-center justify-center text-center w-full flex-grow opacity-0 transition-opacity duration-1000">
+        <!-- Quranic Quote Section -->
+        <div class="max-w-3xl mb-8">
+            <p id="quranArabic" class="arabic-quote text-3xl md:text-4xl lg:text-5xl leading-relaxed mb-4"></p>
+            <p id="quranEnglish" class="text-lg md:text-xl italic"></p>
+            <p id="quranReference" class="text-sm text-gray-300 mt-4"></p>
+        </div>
+    </main>
+
+    <!-- Bottom Information Bar -->
+    <footer id="footerContent" class="relative z-10 w-full max-w-7xl mt-auto opacity-0 transition-opacity duration-1000">
+        <!-- Date and Time Display -->
+        <div class="text-center mb-4">
+            <p id="gregorianTime" class="text-4xl md:text-5xl font-bold"></p>
+            <p id="gregorianDate" class="text-md md:text-lg"></p>
+            <p id="islamicDate" class="text-md md:text-lg text-gray-300"></p>
+        </div>
+
+        <!-- Prayer Times Bar -->
+        <div id="prayerTimes" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 p-4 rounded-lg glass-card">
+            <!-- Prayer time items will be injected here by JavaScript -->
+        </div>
+    </footer>
+
+    <script>
+        // --- DOM Element References ---
+        const body = document.body;
+        const locationModal = document.getElementById('locationModal');
+        const saveLocationBtn = document.getElementById('saveLocationBtn');
+        const latitudeInput = document.getElementById('latitudeInput');
+        const longitudeInput = document.getElementById('longitudeInput');
+        const locationError = document.getElementById('locationError');
+        const mainContent = document.getElementById('mainContent');
+        const footerContent = document.getElementById('footerContent');
+        const quranArabic = document.getElementById('quranArabic');
+        const quranEnglish = document.getElementById('quranEnglish');
+        const quranReference = document.getElementById('quranReference');
+        const gregorianTime = document.getElementById('gregorianTime');
+        const gregorianDate = document.getElementById('gregorianDate');
+        const islamicDate = document.getElementById('islamicDate');
+        const prayerTimesContainer = document.getElementById('prayerTimes');
+
+        // --- Data Sources ---
+        const quranicVerses = [
+            { arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", english: "For indeed, with hardship [will be] ease.", reference: "Quran 94:5" },
+            { arabic: "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ", english: "And whoever relies upon Allah - then He is sufficient for him.", reference: "Quran 65:3" },
+            { arabic: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", english: "Unquestionably, by the remembrance of Allah hearts are assured.", reference: "Quran 13:28" },
+            { arabic: "وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ", english: "And seek help through patience and prayer.", reference: "Quran 2:45" },
+            { arabic: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا", english: "Allah does not burden a soul beyond that it can bear.", reference: "Quran 2:286" }
+        ];
+
+        const backgroundImages = [
+            'https://images.unsplash.com/photo-1585669130086-2399139978a3?q=80&w=2070&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1542553454-3c5457633748?q=80&w=2070&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1559523182-a284c3fb7cff?q=80&w=1974&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1601427885212-0553332a9b3a?q=80&w=2070&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1532664189809-fac7663a7633?q=80&w=2070&auto=format&fit=crop'
+        ];
+
+        // --- Application Logic ---
+
+        const getDayOfYear = () => {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 0);
+            const diff = now - start;
+            const oneDay = 1000 * 60 * 60 * 24;
+            return Math.floor(diff / oneDay);
+        };
+
+        const getTodayDateString = () => {
+            const today = new Date();
+            return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        };
+
+        /**
+         * Sets a daily rotating background image from a predefined list.
+         */
+        const setDailyBackground = () => {
+            const dayOfYear = getDayOfYear();
+            const imageUrl = backgroundImages[dayOfYear % backgroundImages.length];
+            
+            const img = new Image();
+            img.src = imageUrl;
+            img.onload = () => {
+                body.style.backgroundImage = `url('${imageUrl}')`;
+                mainContent.classList.remove('opacity-0');
+                footerContent.classList.remove('opacity-0');
+            };
+            img.onerror = () => {
+                 body.style.backgroundImage = `url('https://placehold.co/1920x1080/000000/FFFFFF?text=Image+Failed+to+Load')`;
+                 mainContent.classList.remove('opacity-0');
+                 footerContent.classList.remove('opacity-0');
+            }
+        };
+
+        /**
+         * Displays a daily Quranic quote.
+         */
+        const displayDailyQuote = () => {
+            const dayOfYear = getDayOfYear();
+            const quote = quranicVerses[dayOfYear % quranicVerses.length];
+
+            quranArabic.textContent = quote.arabic;
+            quranEnglish.textContent = `"${quote.english}"`;
+            quranReference.textContent = quote.reference;
+
+            quranArabic.classList.add('fade-in');
+            quranEnglish.classList.add('fade-in');
+            quranReference.classList.add('fade-in');
+        };
+
+        /**
+         * Updates the time and date display.
+         */
+        const updateDateTime = () => {
+            const update = () => {
+                const now = new Date();
+                gregorianTime.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                gregorianDate.textContent = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            };
+            update();
+            setInterval(update, 1000);
+        };
+        
+        /**
+         * Fetches and displays prayer times from the Aladhan API.
+         */
+        const fetchPrayerTimes = async (latitude, longitude) => {
+            const todayDate = getTodayDateString();
+            const cachedData = JSON.parse(localStorage.getItem('cachedPrayerTimes'));
+
+            if (cachedData && cachedData.date === todayDate && cachedData.lat === latitude && cachedData.lon === longitude) {
+                displayPrayerTimes(cachedData.timings, cachedData.hijri);
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://api.aladhan.com/v1/timings/${todayDate.split('-').reverse().join('-')}?latitude=${latitude}&longitude=${longitude}&method=2`);
+                if (!response.ok) throw new Error('Failed to fetch prayer times.');
+                
+                const data = await response.json();
+                if (data.code !== 200) throw new Error(data.data || 'Invalid prayer time API response');
+                
+                const timings = data.data.timings;
+                const hijriInfo = data.data.date.hijri;
+
+                localStorage.setItem('cachedPrayerTimes', JSON.stringify({
+                    date: todayDate,
+                    lat: latitude,
+                    lon: longitude,
+                    timings: timings,
+                    hijri: hijriInfo
+                }));
+
+                displayPrayerTimes(timings, hijriInfo);
+            } catch (error) {
+                console.error("Error fetching prayer times:", error);
+                prayerTimesContainer.innerHTML = `<p class="col-span-full text-center text-red-400">Could not load prayer times. Please check coordinates and connection.</p>`;
+            }
+        };
+
+        /**
+         * Renders the prayer times and Islamic date on the page.
+         */
+        const displayPrayerTimes = (timings, hijriInfo) => {
+            islamicDate.textContent = `${hijriInfo.weekday.en}, ${hijriInfo.day} ${hijriInfo.month.en}, ${hijriInfo.year}`;
+
+            const prayers = { Fajr: timings.Fajr, Dhuhr: timings.Dhuhr, Asr: timings.Asr, Maghrib: timings.Maghrib, Isha: timings.Isha };
+
+            prayerTimesContainer.innerHTML = '';
+            for (const [prayer, time] of Object.entries(prayers)) {
+                const prayerEl = document.createElement('div');
+                prayerEl.className = 'text-center p-3 rounded-md fade-in';
+                prayerEl.innerHTML = `
+                    <p class="font-semibold text-lg">${prayer}</p>
+                    <p class="text-xl">${time}</p>
+                `;
+                prayerTimesContainer.appendChild(prayerEl);
+            }
+        };
+
+        /**
+         * Initializes the application.
+         */
+        const init = () => {
+            setDailyBackground();
+            displayDailyQuote();
+            updateDateTime();
+
+            const savedLocation = localStorage.getItem('userLocation');
+
+            if (savedLocation) {
+                const { latitude, longitude } = JSON.parse(savedLocation);
+                fetchPrayerTimes(latitude, longitude);
+            } else {
+                locationModal.classList.remove('hidden');
+            }
+
+            saveLocationBtn.addEventListener('click', () => {
+                const latitude = parseFloat(latitudeInput.value);
+                const longitude = parseFloat(longitudeInput.value);
+
+                if (isNaN(latitude) || isNaN(longitude)) {
+                    locationError.textContent = "Please enter valid numbers for latitude and longitude.";
+                    return;
+                }
+                
+                locationError.textContent = "";
+                localStorage.setItem('userLocation', JSON.stringify({ latitude, longitude }));
+                locationModal.classList.add('hidden');
+                fetchPrayerTimes(latitude, longitude);
+            });
+        };
+
+        // --- Start the application on window load ---
+        window.onload = init;
+
+    </script>
+</body>
+</html>
