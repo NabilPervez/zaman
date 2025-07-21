@@ -281,13 +281,22 @@
 
             const prayers = { Fajr: timings.Fajr, Dhuhr: timings.Dhuhr, Asr: timings.Asr, Maghrib: timings.Maghrib, Isha: timings.Isha };
 
+            // Helper function to convert 24-hour time to 12-hour AM/PM format
+            const convertTo12Hour = (time24) => {
+                const [hours, minutes] = time24.split(':');
+                const hour = parseInt(hours);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+                return `${hour12}:${minutes} ${ampm}`;
+            };
+
             prayerTimesContainer.innerHTML = '';
             for (const [prayer, time] of Object.entries(prayers)) {
                 const prayerEl = document.createElement('div');
                 prayerEl.className = 'text-center p-3 rounded-md fade-in';
                 prayerEl.innerHTML = `
                     <p class="font-semibold text-lg">${prayer}</p>
-                    <p class="text-xl">${time}</p>
+                    <p class="text-xl">${convertTo12Hour(time)}</p>
                 `;
                 prayerTimesContainer.appendChild(prayerEl);
             }
