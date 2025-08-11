@@ -98,6 +98,56 @@
 
     <!-- Main Content Container -->
     <main id="mainContent" class="relative z-10 flex flex-col items-center justify-center text-center w-full flex-grow opacity-0 transition-opacity duration-1000">
+        <!-- Pomodoro Timer Section -->
+        <div id="pomodoroApp" class="glass-card rounded-xl p-6 mb-8 max-w-md w-full">
+            <!-- Timer Mode Selection -->
+            <div class="flex justify-center space-x-2 mb-6">
+                <button id="pomodoroBtn" class="mode-btn bg-red-500 bg-opacity-80 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:bg-opacity-100">
+                    Pomodoro
+                </button>
+                <button id="shortBreakBtn" class="mode-btn bg-blue-500 bg-opacity-60 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:bg-opacity-80">
+                    Short Break
+                </button>
+                <button id="longBreakBtn" class="mode-btn bg-green-500 bg-opacity-60 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:bg-opacity-80">
+                    Long Break
+                </button>
+            </div>
+
+            <!-- Timer Display -->
+            <div class="text-center mb-6">
+                <div id="timerDisplay" class="text-6xl font-bold text-white mb-2">25:00</div>
+                <div id="sessionCount" class="text-sm text-gray-300">Session 1</div>
+            </div>
+
+            <!-- Timer Controls -->
+            <div class="flex justify-center space-x-4 mb-6">
+                <button id="startBtn" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300">
+                    Start
+                </button>
+                <button id="pauseBtn" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hidden">
+                    Pause
+                </button>
+                <button id="resetBtn" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-3 rounded-lg font-medium transition-all duration-300">
+                    Reset
+                </button>
+            </div>
+
+            <!-- To-Do List -->
+            <div class="border-t border-white border-opacity-20 pt-4">
+                <h3 class="text-lg font-medium text-white mb-3">Focus Tasks</h3>
+                <div class="flex mb-3">
+                    <input type="text" id="taskInput" placeholder="Add a task..." 
+                           class="flex-1 px-3 py-2 bg-white bg-opacity-20 text-white placeholder-gray-300 rounded-l-lg border-none outline-none">
+                    <button id="addTaskBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-r-lg transition-colors duration-300">
+                        Add
+                    </button>
+                </div>
+                <ul id="taskList" class="space-y-2 max-h-32 overflow-y-auto">
+                    <!-- Tasks will be rendered here -->
+                </ul>
+            </div>
+        </div>
+
         <!-- Quranic Quote Section -->
         <div class="max-w-3xl mb-8">
             <p id="quranArabic" class="arabic-quote text-3xl md:text-4xl lg:text-5xl leading-relaxed mb-4"></p>
@@ -121,6 +171,18 @@
         </div>
     </footer>
 
+    <!-- Audio Elements -->
+    <audio id="brownNoise" loop>
+        <source src="https://www.soundjay.com/misc/sounds/brown-noise.mp3" type="audio/mpeg">
+        <!-- Fallback brown noise URL -->
+        <source src="https://archive.org/download/BrownNoise/brown-noise-10min.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="chimeSound">
+        <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
+        <!-- Fallback chime URL -->
+        <source src="https://archive.org/download/SampleAudio0424/SampleAudio_0.4s_1MB_mp3.mp3" type="audio/mpeg">
+    </audio>
+
     <script>
         // --- DOM Element References ---
         const body = document.body;
@@ -138,6 +200,21 @@
         const gregorianDate = document.getElementById('gregorianDate');
         const islamicDate = document.getElementById('islamicDate');
         const prayerTimesContainer = document.getElementById('prayerTimes');
+
+        // Pomodoro Timer Elements
+        const pomodoroBtn = document.getElementById('pomodoroBtn');
+        const shortBreakBtn = document.getElementById('shortBreakBtn');
+        const longBreakBtn = document.getElementById('longBreakBtn');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const sessionCount = document.getElementById('sessionCount');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const taskInput = document.getElementById('taskInput');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const taskList = document.getElementById('taskList');
+        const brownNoise = document.getElementById('brownNoise');
+        const chimeSound = document.getElementById('chimeSound');
 
         // --- Data Sources ---
         const quranicVerses = 
@@ -197,6 +274,167 @@
             'https://images.unsplash.com/flagged/photo-1558113118-e42e558b352a?q=80&w=1548&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
             'https://images.unsplash.com/photo-1508724547755-22fa72fcbe24?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
         ];
+
+        // --- Pomodoro Timer Logic ---
+        let currentMode = 'pomodoro';
+        let timeLeft = 25 * 60; // 25 minutes in seconds
+        let timerInterval = null;
+        let isRunning = false;
+        let pomodoroCount = 1;
+        let tasks = JSON.parse(localStorage.getItem('pomodoroTasks')) || [];
+
+        const timerDurations = {
+            pomodoro: 25 * 60,
+            shortBreak: 5 * 60,
+            longBreak: 15 * 60
+        };
+
+        const updateTimerDisplay = () => {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        };
+
+        const startTimer = () => {
+            if (!isRunning) {
+                isRunning = true;
+                startBtn.classList.add('hidden');
+                pauseBtn.classList.remove('hidden');
+                
+                // Play brown noise only during pomodoro sessions
+                if (currentMode === 'pomodoro') {
+                    brownNoise.volume = 0.3;
+                    brownNoise.play().catch(e => console.log('Brown noise failed to play:', e));
+                }
+                
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    
+                    if (timeLeft <= 0) {
+                        timerComplete();
+                    }
+                }, 1000);
+            }
+        };
+
+        const pauseTimer = () => {
+            if (isRunning) {
+                isRunning = false;
+                clearInterval(timerInterval);
+                startBtn.classList.remove('hidden');
+                pauseBtn.classList.add('hidden');
+                brownNoise.pause();
+            }
+        };
+
+        const resetTimer = () => {
+            isRunning = false;
+            clearInterval(timerInterval);
+            timeLeft = timerDurations[currentMode];
+            updateTimerDisplay();
+            startBtn.classList.remove('hidden');
+            pauseBtn.classList.add('hidden');
+            brownNoise.pause();
+            brownNoise.currentTime = 0;
+        };
+
+        const switchMode = (mode) => {
+            currentMode = mode;
+            resetTimer();
+            
+            // Update button styles
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('bg-opacity-80');
+                btn.classList.add('bg-opacity-60');
+            });
+            
+            if (mode === 'pomodoro') {
+                pomodoroBtn.classList.remove('bg-opacity-60');
+                pomodoroBtn.classList.add('bg-opacity-80');
+            } else if (mode === 'shortBreak') {
+                shortBreakBtn.classList.remove('bg-opacity-60');
+                shortBreakBtn.classList.add('bg-opacity-80');
+            } else if (mode === 'longBreak') {
+                longBreakBtn.classList.remove('bg-opacity-60');
+                longBreakBtn.classList.add('bg-opacity-80');
+            }
+        };
+
+        const timerComplete = () => {
+            isRunning = false;
+            clearInterval(timerInterval);
+            brownNoise.pause();
+            brownNoise.currentTime = 0;
+            
+            // Play chime
+            chimeSound.volume = 0.5;
+            chimeSound.play().catch(e => console.log('Chime failed to play:', e));
+            
+            // Auto-switch modes
+            if (currentMode === 'pomodoro') {
+                pomodoroCount++;
+                sessionCount.textContent = `Session ${pomodoroCount}`;
+                
+                // Every 4 pomodoros, take a long break
+                if (pomodoroCount % 4 === 1) {
+                    switchMode('longBreak');
+                } else {
+                    switchMode('shortBreak');
+                }
+            } else {
+                switchMode('pomodoro');
+            }
+            
+            startBtn.classList.remove('hidden');
+            pauseBtn.classList.add('hidden');
+        };
+
+        // --- To-Do List Logic ---
+        const renderTasks = () => {
+            taskList.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center justify-between bg-white bg-opacity-10 rounded-lg p-2';
+                li.innerHTML = `
+                    <div class="flex items-center flex-1">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                               onchange="toggleTaskComplete(${index})"
+                               class="mr-2 rounded">
+                        <span class="${task.completed ? 'line-through text-gray-400' : 'text-white'} flex-1">
+                            ${task.text}
+                        </span>
+                    </div>
+                    <button onclick="deleteTask(${index})" 
+                            class="text-red-400 hover:text-red-300 ml-2 text-sm">
+                        ✕
+                    </button>
+                `;
+                taskList.appendChild(li);
+            });
+        };
+
+        const addTask = () => {
+            const taskText = taskInput.value.trim();
+            if (taskText) {
+                tasks.push({ text: taskText, completed: false });
+                localStorage.setItem('pomodoroTasks', JSON.stringify(tasks));
+                taskInput.value = '';
+                renderTasks();
+            }
+        };
+
+        const toggleTaskComplete = (index) => {
+            tasks[index].completed = !tasks[index].completed;
+            localStorage.setItem('pomodoroTasks', JSON.stringify(tasks));
+            renderTasks();
+        };
+
+        const deleteTask = (index) => {
+            tasks.splice(index, 1);
+            localStorage.setItem('pomodoroTasks', JSON.stringify(tasks));
+            renderTasks();
+        };
 
         // --- Application Logic ---
 
@@ -336,6 +574,11 @@
             setDailyBackground();
             displayDailyQuote();
             updateDateTime();
+            
+            // Initialize Pomodoro Timer
+            updateTimerDisplay();
+            sessionCount.textContent = `Session ${pomodoroCount}`;
+            renderTasks();
 
             const savedLocation = localStorage.getItem('userLocation');
 
@@ -359,6 +602,18 @@
                 localStorage.setItem('userLocation', JSON.stringify({ latitude, longitude }));
                 locationModal.classList.add('hidden');
                 fetchPrayerTimes(latitude, longitude);
+            });
+            
+            // Pomodoro Event Listeners
+            pomodoroBtn.addEventListener('click', () => switchMode('pomodoro'));
+            shortBreakBtn.addEventListener('click', () => switchMode('shortBreak'));
+            longBreakBtn.addEventListener('click', () => switchMode('longBreak'));
+            startBtn.addEventListener('click', startTimer);
+            pauseBtn.addEventListener('click', pauseTimer);
+            resetBtn.addEventListener('click', resetTimer);
+            addTaskBtn.addEventListener('click', addTask);
+            taskInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addTask();
             });
         };
 
